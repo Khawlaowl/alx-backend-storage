@@ -1,28 +1,26 @@
 #!/usr/bin/env python3
-'''Task 14's module.
-'''
 
+from pymongo import MongoClient
 
-def top_students(mongo_collection):
-    '''Prints all students in a collection sorted by average score.
-    '''
-    students = mongo_collection.aggregate(
-        [
-            {
-                '$project': {
-                    '_id': 1,
-                    'name': 1,
-                    'averageScore': {
-                        '$avg': {
-                            '$avg': '$topics.score',
-                        },
-                    },
-                    'topics': 1,
-                },
-            },
-            {
-                '$sort': {'averageScore': -1},
-            },
-        ]
-    )
-    return students
+def log_stats():
+    client = MongoClient('localhost', 27017)
+    db = client.logs
+    collection = db.nginx
+
+    # Number of documents in the collection
+    num_logs = collection.count_documents({})
+    print(f"{num_logs} logs")
+
+    # Methods and their counts
+    methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
+    print("Methods:")
+    for method in methods:
+        count = collection.count_documents({"method": method})
+        print(f"\tmethod {method}: {count}")
+
+    # Number of documents with method=GET and path=/status
+    status_check = collection.count_documents({"method": "GET", "path": "/status"})
+    print(f"{status_check} status check")
+
+if __name__ == "__main__":
+    log_stats()
